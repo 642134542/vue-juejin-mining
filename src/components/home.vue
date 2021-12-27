@@ -69,7 +69,7 @@ export default {
       };
       console.log(params);
       const xGameId = this.getXGameId();
-      command(params, this.form.uid, time).then(() => {});
+      command(params, this.form.uid, time, xGameId).then(() => {});
     },
     // 结束
     over() {
@@ -94,11 +94,11 @@ export default {
       });
     },
     getXGameId() {
-      const time = new Date().getTime();
+      const time = +new Date().getTime();
       return jwt.sign(
         {
-          gameId: this.form.uid,
-          time,
+          gameId: "2021-12-27 18:17:49 +08:00",
+          time: time,
           // eslint-disable-next-line max-len
         },
         "-----BEGIN EC PARAMETERS-----\nBggqhkjOPQMBBw==\n-----END EC PARAMETERS-----\n-----BEGIN EC PRIVATE KEY-----\nMHcCAQEEIDB7KMVQd+eeKt7AwDMMUaT7DE3Sl0Mto3LEojnEkRiAoAoGCCqGSM49\nAwEHoUQDQgAEEkViJDU8lYJUenS6IxPlvFJtUCDNF0c/F/cX07KCweC4Q/nOKsoU\nnYJsb4O8lMqNXaI1j16OmXk9CkcQQXbzfg==\n-----END EC PRIVATE KEY-----\n",
