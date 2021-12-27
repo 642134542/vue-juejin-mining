@@ -11,11 +11,15 @@
       </el-form>
       <el-button type="primary" @click="start">开始</el-button>
       <el-button type="primary" @click="command">发起指令</el-button>
-      <el-button type="primary">重新开始</el-button>
+      <el-button type="primary" @click="freshMap">重新开始</el-button>
       <el-button type="warning" @click="over">结束</el-button>
-      <el-button type="primary">彩蛋</el-button>
+      <el-button type="primary" @click="loopGetPicoDiamond">彩蛋</el-button>
     </el-aside>
     <el-main class="home-main">
+      <div class="left-text">
+        <p>当前位置：{{deep}}</p>
+        <p>当前钻石：{{gameDiamond}}</p>
+      </div>
       <div class="log-container left-text">
         <h3 class="left-text">日志:</h3>
         <div class="">
@@ -30,22 +34,45 @@
 
 <script>
 import jwt from "jsonwebtoken";
-import { start, over, freshMap, command, pico } from "../api/juejin";
+import { start, over, freshMap, command, pico, getInfo } from "../api/juejin";
 import first from "../utils/first";
 
+let loop = null;
 export default {
   name: "home",
   components: {},
   data() {
     return {
       form: {
-        uid: "4142615543166653",
+        uid: "3501309438466462",
         token: "",
       },
       logData: [],
+      deep: 0, // 当前位置
+      gameId: 0,
+      gameDiamond: 0,
     };
   },
+  created() {
+    this.getInfo()
+  },
   methods: {
+    getInfo() {
+      const time = new Date().getTime();
+      getInfo(this.form.uid, time).then(
+        (res) => {
+          const { data } = res;
+          this.$message.success("获取成功");
+          this.logData.push({
+            msg: res.message,
+          });
+          this.deep = data.gameInfo.deep;
+          this.gameDiamond = data.gameInfo.gameDiamond;
+          this.gameId = data.gameInfo.gameId;
+        },
+        () => {}
+      );
+    },
     start() {
       const time = new Date().getTime();
       const params = {
@@ -53,10 +80,14 @@ export default {
       };
       start(params, this.form.uid, time).then(
         (res) => {
+          const { data } = res;
           this.$message.success("开始成功");
           this.logData.push({
             msg: res.message,
           });
+          this.deep = data.deep;
+          this.gameDiamond = data.gameDiamond;
+          this.gameId = data.gameId;
         },
         () => {}
       );
@@ -69,7 +100,46 @@ export default {
       };
       console.log(params);
       const xGameId = this.getXGameId();
-      command(params, this.form.uid, time, xGameId).then(() => {});
+      command(params, this.form.uid, time, xGameId).then((res) => {
+        const { data } = res;
+        this.deep = data.curPos.y;
+        this.gameDiamond = data.gameDiamond;
+      });
+    },
+    loopGetPicoDiamond() {
+      const deep = Math.ceil(this.deep / 100) * 100; // 向上取整
+      this.getPicoDiamond(deep)
+    },
+    getPicoDiamond(deep) {
+      // const deep = Math.ceil(this.deep); // 向上取整
+      const params = {
+        deep,
+      }
+      const time = new Date().getTime();
+      pico(params, this.form.uid, time).then((res) => {
+        this.logData.push({
+          msg: res.message,
+        });
+        if (deep >= 200) {
+          setTimeout(() => {
+            this.getPicoDiamond(deep - 100);
+          }, 2000);
+        }
+      });
+    },
+    // 重新开始
+    freshMap() {
+      const time = new Date().getTime();
+      const params = {};
+      freshMap(params, this.form.uid, time).then(
+        (res) => {
+          this.$message.success("开始成功");
+          this.logData.push({
+            msg: res.message,
+          });
+        },
+        () => {}
+      );
     },
     // 结束
     over() {
@@ -97,7 +167,7 @@ export default {
       const time = +new Date().getTime();
       return jwt.sign(
         {
-          gameId: "2021-12-27 18:17:49 +08:00",
+          gameId: this.gameId,
           time: time,
           // eslint-disable-next-line max-len
         },

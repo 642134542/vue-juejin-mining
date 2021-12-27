@@ -1,5 +1,5 @@
 // eslint-disable-next-line import/no-cycle
-import request from "@/utils/request";
+import request from "@/utils/request.js";
 
 /* 开始 */
 /**
@@ -23,10 +23,10 @@ export function start(params, uid, time) {
  * @param {*} time
  * @returns
  */
-export function getInfo(params, uid, time) {
+export function getInfo(uid, time) {
   return request({
     url: `/game/sea-gold/home/info?uid=${uid}&time=${time}`,
-    method: "post",
+    method: "get",
   });
 }
 
