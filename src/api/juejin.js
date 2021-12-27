@@ -16,6 +16,19 @@ export function start(params, uid, time) {
     data: params,
   });
 }
+/**
+ * 获取游戏info
+ * @param {*} params
+ * @param {*} uid
+ * @param {*} time
+ * @returns
+ */
+export function getInfo(params, uid, time) {
+  return request({
+    url: `/game/sea-gold/home/info?uid=${uid}&time=${time}`,
+    method: "post",
+  });
+}
 
 /**
  * 结束
