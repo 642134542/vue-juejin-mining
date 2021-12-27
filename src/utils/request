@@ -22,11 +22,7 @@ service.interceptors.request.use(
 );
 
 service.interceptors.response.use(
-  (res) => {
-    if (res.code === 0) {
-      return Promise.resolve(res);
-    }
-  },
+  (res) => res.data,
   (err) => {
     if (err.response.status === 401) {
     }

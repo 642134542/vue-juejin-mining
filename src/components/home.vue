@@ -10,15 +10,18 @@
         </el-form-item>
       </el-form>
       <el-button type="primary" @click="start">开始</el-button>
+      <el-button type="primary" @click="command">发起指令</el-button>
       <el-button type="primary">重新开始</el-button>
-      <el-button type="warning">结束</el-button>
+      <el-button type="warning" @click="over">结束</el-button>
       <el-button type="primary">彩蛋</el-button>
     </el-aside>
     <el-main class="home-main">
-      <div class="log-container">
+      <div class="log-container left-text">
         <h3 class="left-text">日志:</h3>
-        <div>
-          <p v-for="(item, index) in logData" :key="index"></p>
+        <div class="">
+          <p v-for="(item, index) in logData" :key="index">
+            {{ index + 1 }}: {{ item.msg }}
+          </p>
         </div>
       </div>
     </el-main>
@@ -28,6 +31,7 @@
 <script>
 import jwt from "jsonwebtoken";
 import { start, over, freshMap, command, pico } from "../api/juejin";
+import first from "../utils/first";
 
 export default {
   name: "home",
@@ -48,22 +52,52 @@ export default {
         roleId: 3,
       };
       start(params, this.form.uid, time).then(
-        () => {
+        (res) => {
           this.$message.success("开始成功");
           this.logData.push({
-            msg: res.data,
+            msg: res.message,
           });
         },
-        () => {
-
-        }
+        () => {}
       );
     },
-    getToken() {
+    // 发出指令
+    command() {
       const time = new Date().getTime();
-      this.xGameId = jwt.sign(
+      const params = {
+        command: first.command,
+      };
+      console.log(params);
+      const xGameId = this.getXGameId();
+      command(params, this.form.uid, time).then(() => {});
+    },
+    // 结束
+    over() {
+      this.$confirm("此操作将结束游戏, 是否继续?", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning",
+      }).then(() => {
+        const time = new Date().getTime();
+        const params = {
+          isButton: 1,
+        };
+        over(params, this.form.uid, time).then(
+          (res) => {
+            this.$message.success("开始成功");
+            this.logData.push({
+              msg: res.message,
+            });
+          },
+          () => {}
+        );
+      });
+    },
+    getXGameId() {
+      const time = new Date().getTime();
+      return jwt.sign(
         {
-          gameId: this.form.gameId,
+          gameId: this.form.uid,
           time,
           // eslint-disable-next-line max-len
         },

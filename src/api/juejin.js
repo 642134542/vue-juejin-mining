@@ -28,7 +28,7 @@ export function over(params, uid, time) {
   return request({
     url: `/game/sea-gold/game/over?uid=${uid}&time=${time}`,
     method: "post",
-    params,
+    data: params,
   });
 }
 /**
@@ -42,7 +42,7 @@ export function freshMap(params, uid, time) {
   return request({
     url: `/game/sea-gold/game/fresh_map?uid=${uid}&time=${time}`,
     method: "post",
-    params,
+    data: params,
   });
 }
 /**
@@ -52,13 +52,14 @@ export function freshMap(params, uid, time) {
  * @param {*} time
  * @returns
  */
-export function command(params, uid, time) {
+export function command(params, uid, time, xGameId) {
   return request({
     url: `/game/sea-gold/game/command?uid=${uid}&time=${time}`,
     method: "post",
-    params,
-    header: {
-      "Content-Type": "application/json",
+    data: params,
+    headers: {
+      "Content-Type": "application/json;charset=UTF-8",
+      "x-tt-gameid": xGameId,
     },
   });
 }
@@ -73,8 +74,8 @@ export function pico(params, uid, time) {
   return request({
     url: `/game/sea-gold/game/pico?uid=${uid}&time=${time}`,
     method: "post",
-    params,
-    header: {
+    data: params,
+    headers: {
       "Content-Type": "application/json;charset=UTF-8",
     },
   });
