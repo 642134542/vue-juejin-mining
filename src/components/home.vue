@@ -1,30 +1,47 @@
 <template>
   <el-container class="home-container">
     <el-aside width="500px">
-      <el-form ref="form" :model="form" label-width="80px" size="mini">
-        <el-form-item label="UID">
-          <el-input v-model="form.uid"></el-input>
+      <el-form ref="form" :model="form" :rules="formRule" label-width="80px" size="mini">
+        <el-form-item label="UID" prop="uid">
+          <el-input v-model="form.uid" @blur="saveLocal"></el-input>
         </el-form-item>
-        <el-form-item label="TOKEN">
-          <el-input v-model="form.token"></el-input>
+        <el-form-item label="TOKEN" prop="token">
+          <el-input v-model="form.token" @blur="saveLocal"></el-input>
         </el-form-item>
       </el-form>
-      <el-button type="primary" @click="start">开始</el-button>
-      <el-button type="primary" @click="command">发起指令</el-button>
-      <el-button type="primary" @click="freshMap">重新开始</el-button>
-      <el-button type="warning" @click="over">结束</el-button>
-      <el-button type="primary" @click="loopGetPicoDiamond">彩蛋</el-button>
+      <el-button type="primary" @click="submitForm('start')">开始</el-button>
+      <el-button type="primary" @click="submitForm('command')">发起指令</el-button>
+      <el-button type="primary" @click="submitForm('freshMap')">重新开始</el-button>
+      <el-button type="warning" @click="submitForm('over')">结束</el-button>
+      <el-button type="primary" @click="submitForm('loopGetPicoDiamond')">彩蛋</el-button>
     </el-aside>
     <el-main class="home-main">
-      <div class="left-text">
-        <p>当前位置：{{deep}}</p>
-        <p>当前钻石：{{gameDiamond}}</p>
+      <div class="left-text log-basic">
+        <p>用户名：<span class="is-bold">{{userInfo.name}}</span></p>
+        <el-row>
+          <el-col :span="12">
+            <p>今日钻石：<span class="is-bold">{{userInfo.todayDiamond}}</span></p>
+          </el-col>
+          <el-col :span="12">
+            <p>今日限制钻石：<span class="is-bold">{{userInfo.todayLimitDiamond}}</span></p>
+          </el-col>
+        </el-row>
+        <div class="border-bottom"></div>
+        <el-row>
+          <el-col :span="12">
+            <p>当前位置：<span class="is-bold">{{deep}}</span></p>
+          </el-col>
+          <el-col :span="12">
+            <p>当前钻石：<span class="is-bold">{{gameDiamond}}</span></p>
+          </el-col>
+        </el-row>
       </div>
       <div class="log-container left-text">
         <h3 class="left-text">日志:</h3>
-        <div class="">
-          <p v-for="(item, index) in logData" :key="index">
-            {{ index + 1 }}: {{ item.msg }}
+        <el-button class="btn-clear" type="primary" size="mini" @click="clearLog">清空</el-button>
+        <div class="log-list">
+          <p class="log-item" v-for="(item, index) in logData" :key="index">
+            <label>{{ index + 1 }}:</label> {{item.type}}-{{ item.msg }}，{{item.typeInfo}}
           </p>
         </div>
       </div>
@@ -44,19 +61,55 @@ export default {
   data() {
     return {
       form: {
-        uid: "3501309438466462",
+        // uid: "3501309438466462",
+        uid: '',
         token: "",
+      },
+      formRule: {
+        uid: [
+          { required: true, message: '请输入uid', trigger: 'blur' },
+        ],
+        token: [
+          { required: true, message: '请输入token', trigger: 'blur' }
+        ],
       },
       logData: [],
       deep: 0, // 当前位置
       gameId: 0,
       gameDiamond: 0,
+      userInfo: {
+        name: '',
+        todayDiamond: 0,
+        todayLimitDiamond: 0,
+      },
     };
   },
   created() {
-    this.getInfo()
+    this.getLocal();
+    if (this.form.uid && this.form.token) {
+      this.getInfo()
+    }
   },
   methods: {
+    getLocal() {
+      this.form.uid = localStorage.getItem('uid');
+      this.form.token = localStorage.getItem('token');
+    },
+    // 保存本地
+    saveLocal() {
+      localStorage.setItem('uid', this.form.uid);
+      localStorage.setItem('token', this.form.token);
+    },
+    submitForm(funName) {
+      this.$refs.form.validate((valid) => {
+        if (valid) {
+          this[funName]();
+        } else {
+          console.log('error submit!!');
+          return false;
+        }
+      });
+    },
     getInfo() {
       const time = new Date().getTime();
       getInfo(this.form.uid, time).then(
@@ -64,11 +117,16 @@ export default {
           const { data } = res;
           this.$message.success("获取成功");
           this.logData.push({
+            type: 'getInfo',
+            typeInfo: '获取游戏基本信息',
             msg: res.message,
           });
-          this.deep = data.gameInfo.deep;
-          this.gameDiamond = data.gameInfo.gameDiamond;
-          this.gameId = data.gameInfo.gameId;
+          this.deep = data.gameInfo ? data.gameInfo.deep : 0;
+          this.gameDiamond = data.gameInfo ? data.gameInfo.gameDiamond : 0;
+          this.gameId = data.gameInfo ? data.gameInfo.gameId : 0;
+          this.userInfo.name = data.userInfo.name;
+          this.userInfo.todayDiamond = data.userInfo.todayDiamond;
+          this.userInfo.todayLimitDiamond = data.userInfo.todayLimitDiamond;
         },
         () => {}
       );
@@ -81,12 +139,14 @@ export default {
       start(params, this.form.uid, time).then(
         (res) => {
           const { data } = res;
-          this.$message.success("开始成功");
+          // this.$message.success("开始成功");
           this.logData.push({
+            type: 'start',
+            typeInfo: '开始游戏',
             msg: res.message,
           });
-          this.deep = data.deep;
-          this.gameDiamond = data.gameDiamond;
+          this.deep = data.curPos.y;
+          this.gameDiamond = 0;
           this.gameId = data.gameId;
         },
         () => {}
@@ -102,6 +162,11 @@ export default {
       const xGameId = this.getXGameId();
       command(params, this.form.uid, time, xGameId).then((res) => {
         const { data } = res;
+        this.logData.push({
+          type: 'command',
+          typeInfo: '发出指令',
+          msg: res.message,
+        });
         this.deep = data.curPos.y;
         this.gameDiamond = data.gameDiamond;
       });
@@ -117,7 +182,18 @@ export default {
       }
       const time = new Date().getTime();
       pico(params, this.form.uid, time).then((res) => {
+        const { data } = res;
+        let otherMsg = '';
+        if (res.code === 0) {
+          if (data.diamond) {
+            otherMsg = `获得矿石，数量为${data.diamond}`
+          } else {
+            otherMsg = `获得道具，编号为${data.pico}`
+          }
+        }
         this.logData.push({
+          type: 'pico',
+          typeInfo: otherMsg,
           msg: res.message,
         });
         if (deep >= 200) {
@@ -135,6 +211,8 @@ export default {
         (res) => {
           this.$message.success("开始成功");
           this.logData.push({
+            type: 'freshMap',
+            typeInfo: '更换地图',
             msg: res.message,
           });
         },
@@ -155,13 +233,20 @@ export default {
         over(params, this.form.uid, time).then(
           (res) => {
             this.$message.success("开始成功");
+            const { data } = res;
             this.logData.push({
+              type: 'over',
+              typeInfo: `结束游戏，位置${data.deep}, 矿石${data.gameDiamond}，实际获取矿石${data.realDiamond}, 彩蛋矿石${data.picoDiamond}`,
               msg: res.message,
             });
           },
           () => {}
         );
       });
+    },
+    // 清空日志
+    clearLog() {
+      this.logData = [];
     },
     getXGameId() {
       const time = +new Date().getTime();
