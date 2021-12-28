@@ -1,4 +1,3 @@
-// eslint-disable-next-line import/no-cycle
 import request from "@/utils/request.js";
 
 /* 开始 */
@@ -91,5 +90,17 @@ export function pico(params, uid, time) {
     headers: {
       "Content-Type": "application/json;charset=UTF-8",
     },
+  });
+}
+/**
+ * 获取历史记录
+ * @param {} uid
+ * @param {*} time
+ * @returns
+ */
+export function getRecord(uid, time) {
+  return request({
+    url: `/game/sea-gold/user/record?uid=${uid}&time=${time}`,
+    method: "get",
   });
 }

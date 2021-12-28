@@ -25,9 +25,11 @@ module.exports = {
         ws: false,
         target: "https://juejin-game.bytedance.com",
         changeOrigin: true,
-        pathRewrite: {
-          "^/api": "/api",
-        },
+      },
+      "/user": {
+        ws: false,
+        target: "https://api.juejin.cn/user_api/v1/user/get",
+        changeOrigin: true,
       },
     },
   },

@@ -1,5 +1,4 @@
 import axios from "axios";
-// eslint-disable-next-line import/no-cycle
 
 const service = axios.create({
   timeout: 1000 * 60 * 5, // request timeout
@@ -24,8 +23,6 @@ service.interceptors.request.use(
 service.interceptors.response.use(
   (res) => res.data,
   (err) => {
-    if (err.response.status === 401) {
-    }
     return Promise.reject(err);
   }
 );

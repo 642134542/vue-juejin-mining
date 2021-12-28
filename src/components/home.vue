@@ -1,7 +1,13 @@
 <template>
   <el-container class="home-container">
     <el-aside width="500px">
-      <el-form ref="form" :model="form" :rules="formRule" label-width="80px" size="mini">
+      <el-form
+        ref="form"
+        :model="form"
+        :rules="formRule"
+        label-width="80px"
+        size="mini"
+      >
         <el-form-item label="UID" prop="uid">
           <el-input v-model="form.uid" @blur="saveLocal"></el-input>
         </el-form-item>
@@ -9,52 +15,161 @@
           <el-input v-model="form.token" @blur="saveLocal"></el-input>
         </el-form-item>
       </el-form>
-      <el-button type="primary" @click="submitForm('start')">开始</el-button>
-      <el-button type="primary" @click="submitForm('command')">发起指令</el-button>
-      <el-button type="primary" @click="submitForm('freshMap')">重新开始</el-button>
-      <el-button type="warning" @click="submitForm('over')">结束</el-button>
-      <el-button type="primary" @click="submitForm('loopGetPicoDiamond')">彩蛋</el-button>
+      <el-row>
+        <el-col :span="8">
+          <el-button type="primary" @click="submitForm('start')"
+            >开始</el-button
+          >
+        </el-col>
+        <el-col :span="8">
+          <el-button type="primary" @click="submitForm('command')"
+            >发起指令</el-button
+          >
+        </el-col>
+        <el-col :span="8">
+          <el-button type="primary" @click="submitForm('loopGetPicoDiamond')"
+            >彩蛋</el-button
+          >
+        </el-col>
+      </el-row>
+      <el-row class="margin-top-20">
+        <el-col :span="8">
+          <el-button type="primary" @click="submitForm('freshMap')"
+            >重新开始</el-button
+          >
+        </el-col>
+        <el-col :span="8">
+          <el-button type="warning" @click="submitForm('over')">结束</el-button>
+        </el-col>
+        <el-col :span="8">
+          <el-button type="primary" @click="getRecord(true)">记录</el-button>
+        </el-col>
+      </el-row>
     </el-aside>
     <el-main class="home-main">
       <div class="left-text log-basic">
-        <p>用户名：<span class="is-bold">{{userInfo.name}}</span></p>
+        <p>
+          用户名：<span class="is-bold">{{ userInfo.name }}</span>
+        </p>
         <el-row>
           <el-col :span="12">
-            <p>今日钻石：<span class="is-bold">{{userInfo.todayDiamond}}</span></p>
+            <p>
+              今日矿石：<span class="is-bold">{{ userInfo.todayDiamond }}</span>
+            </p>
           </el-col>
           <el-col :span="12">
-            <p>今日限制钻石：<span class="is-bold">{{userInfo.todayLimitDiamond}}</span></p>
+            <p>
+              今日限制矿石：<span class="is-bold">{{
+                userInfo.todayLimitDiamond
+              }}</span>
+            </p>
           </el-col>
         </el-row>
         <div class="border-bottom"></div>
         <el-row>
           <el-col :span="12">
-            <p>当前位置：<span class="is-bold">{{deep}}</span></p>
+            <p>
+              今日彩蛋矿石：<span class="is-bold">{{
+                userInfo.todayTotalPicoDiamond
+              }}</span>
+            </p>
+          </el-col>
+        </el-row>
+        <div class="border-bottom"></div>
+        <el-row>
+          <el-col :span="12">
+            <p>
+              当前位置：<span class="is-bold">{{ deep }}</span>
+            </p>
           </el-col>
           <el-col :span="12">
-            <p>当前钻石：<span class="is-bold">{{gameDiamond}}</span></p>
+            <p>
+              当前矿石：<span class="is-bold">{{ gameDiamond }}</span>
+            </p>
           </el-col>
         </el-row>
       </div>
       <div class="log-container left-text">
         <h3 class="left-text">日志:</h3>
-        <el-button class="btn-clear" type="primary" size="mini" @click="clearLog">清空</el-button>
+        <el-button
+          class="btn-clear"
+          type="primary"
+          size="mini"
+          @click="clearLog"
+          >清空</el-button
+        >
         <div class="log-list">
           <p class="log-item" v-for="(item, index) in logData" :key="index">
-            <label>{{ index + 1 }}:</label> {{item.type}}-{{ item.msg }}，{{item.typeInfo}}
+            <label>{{ index + 1 }}:</label> {{ item.type }}-{{ item.msg }}，{{
+              item.typeInfo
+            }}
           </p>
         </div>
       </div>
     </el-main>
+    <el-dialog
+      title="记录"
+      :visible.sync="dialogVisible"
+      width="80%"
+      :before-close="handleClose"
+    >
+      <el-table
+        :data="recordTableData"
+        border
+        show-summary
+        style="width: 100%"
+        height="500px"
+      >
+        <el-table-column prop="time" label="游戏时间" align="center">
+          <template slot-scope="scope">
+            <span>{{ timeFormat(scope.row.time) }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="roleId" label="游戏角色" align="center">
+        </el-table-column>
+        <el-table-column prop="deep" label="位置" width="180" align="center">
+        </el-table-column>
+        <el-table-column prop="diamond" label="矿石" width="180" align="center">
+        </el-table-column>
+        <el-table-column prop="picoDiamond" label="彩蛋矿石" align="center">
+        </el-table-column>
+        <el-table-column
+          prop="realDiamond"
+          label="实际矿石"
+          width="180"
+          align="center"
+        >
+        </el-table-column>
+        <el-table-column
+          prop="diamond"
+          label="gameTime"
+          width="180"
+          align="center"
+        >
+        </el-table-column>
+        <el-table-column prop="picoDiamond" label="seed" align="center">
+        </el-table-column>
+      </el-table>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="dialogVisible = false">关 闭</el-button>
+      </span>
+    </el-dialog>
   </el-container>
 </template>
 
 <script>
 import jwt from "jsonwebtoken";
-import { start, over, freshMap, command, pico, getInfo } from "../api/juejin";
+import {
+  start,
+  over,
+  freshMap,
+  command,
+  pico,
+  getInfo,
+  getRecord,
+} from "../api/juejin";
 import first from "../utils/first";
 
-let loop = null;
 export default {
   name: "home",
   components: {},
@@ -62,50 +177,69 @@ export default {
     return {
       form: {
         // uid: "3501309438466462",
-        uid: '',
+        uid: "",
         token: "",
       },
       formRule: {
-        uid: [
-          { required: true, message: '请输入uid', trigger: 'blur' },
-        ],
-        token: [
-          { required: true, message: '请输入token', trigger: 'blur' }
-        ],
+        uid: [{ required: true, message: "请输入uid", trigger: "blur" }],
+        token: [{ required: true, message: "请输入token", trigger: "blur" }],
       },
       logData: [],
       deep: 0, // 当前位置
       gameId: 0,
       gameDiamond: 0,
       userInfo: {
-        name: '',
+        name: "",
         todayDiamond: 0,
         todayLimitDiamond: 0,
+        todayTotalPicoDiamond: 0,
       },
+      recordTableData: [], // 记录
+      dialogVisible: false,
     };
   },
   created() {
     this.getLocal();
     if (this.form.uid && this.form.token) {
-      this.getInfo()
+      // this.getInfo();
+      // this.getRecord();
     }
   },
   methods: {
+    // 获取历史记录
+    getRecord(show = false) {
+      this.dialogVisible = show;
+      const time = new Date().getTime();
+      getRecord(this.form.uid, time).then(
+        (res) => {
+          const { data } = res;
+          this.recordTableData = data.record;
+          const todayStamp = +new Date(
+            new Date().setHours(0, 0, 0, 0)
+          ).getTime();
+          const todayRecord = data.record.filter((v) => v.time >= todayStamp);
+          todayRecord.forEach((v) => {
+            this.userInfo.todayTotalPicoDiamond += v.picoDiamond;
+          });
+        },
+        () => {}
+      );
+    },
     getLocal() {
-      this.form.uid = localStorage.getItem('uid');
-      this.form.token = localStorage.getItem('token');
+      this.form.uid = localStorage.getItem("uid");
+      this.form.token = localStorage.getItem("token");
     },
     // 保存本地
     saveLocal() {
-      localStorage.setItem('uid', this.form.uid);
-      localStorage.setItem('token', this.form.token);
+      localStorage.setItem("uid", this.form.uid);
+      localStorage.setItem("token", this.form.token);
     },
     submitForm(funName) {
       this.$refs.form.validate((valid) => {
         if (valid) {
           this[funName]();
         } else {
-          console.log('error submit!!');
+          console.log("error submit!!");
           return false;
         }
       });
@@ -115,10 +249,9 @@ export default {
       getInfo(this.form.uid, time).then(
         (res) => {
           const { data } = res;
-          this.$message.success("获取成功");
           this.logData.push({
-            type: 'getInfo',
-            typeInfo: '获取游戏基本信息',
+            type: "getInfo",
+            typeInfo: "获取游戏基本信息",
             msg: res.message,
           });
           this.deep = data.gameInfo ? data.gameInfo.deep : 0;
@@ -141,8 +274,8 @@ export default {
           const { data } = res;
           // this.$message.success("开始成功");
           this.logData.push({
-            type: 'start',
-            typeInfo: '开始游戏',
+            type: "start",
+            typeInfo: "开始游戏",
             msg: res.message,
           });
           this.deep = data.curPos.y;
@@ -163,8 +296,8 @@ export default {
       command(params, this.form.uid, time, xGameId).then((res) => {
         const { data } = res;
         this.logData.push({
-          type: 'command',
-          typeInfo: '发出指令',
+          type: "command",
+          typeInfo: "发出指令",
           msg: res.message,
         });
         this.deep = data.curPos.y;
@@ -173,26 +306,26 @@ export default {
     },
     loopGetPicoDiamond() {
       const deep = Math.ceil(this.deep / 100) * 100; // 向上取整
-      this.getPicoDiamond(deep)
+      this.getPicoDiamond(deep);
     },
     getPicoDiamond(deep) {
       // const deep = Math.ceil(this.deep); // 向上取整
       const params = {
         deep,
-      }
+      };
       const time = new Date().getTime();
       pico(params, this.form.uid, time).then((res) => {
         const { data } = res;
-        let otherMsg = '';
+        let otherMsg = "";
         if (res.code === 0) {
           if (data.diamond) {
-            otherMsg = `获得矿石，数量为${data.diamond}`
+            otherMsg = `获得矿石，数量为${data.diamond}`;
           } else {
-            otherMsg = `获得道具，编号为${data.pico}`
+            otherMsg = `获得道具，编号为${data.pico}`;
           }
         }
         this.logData.push({
-          type: 'pico',
+          type: "pico",
           typeInfo: otherMsg,
           msg: res.message,
         });
@@ -211,8 +344,8 @@ export default {
         (res) => {
           this.$message.success("开始成功");
           this.logData.push({
-            type: 'freshMap',
-            typeInfo: '更换地图',
+            type: "freshMap",
+            typeInfo: "更换地图",
             msg: res.message,
           });
         },
@@ -235,7 +368,7 @@ export default {
             this.$message.success("开始成功");
             const { data } = res;
             this.logData.push({
-              type: 'over',
+              type: "over",
               typeInfo: `结束游戏，位置${data.deep}, 矿石${data.gameDiamond}，实际获取矿石${data.realDiamond}, 彩蛋矿石${data.picoDiamond}`,
               msg: res.message,
             });
@@ -247,6 +380,22 @@ export default {
     // 清空日志
     clearLog() {
       this.logData = [];
+    },
+    // 关闭弹窗
+    handleClose() {
+      this.dialogVisible = false;
+    },
+    timeFormat(d) {
+      const time = new Date(+d);
+      const month =
+        time.getMonth() + 1 < 10
+          ? `0${time.getMonth() + 1}`
+          : time.getMonth() + 1;
+      const day = time.getDate() < 10 ? `0${time.getDate()}` : time.getDate();
+      const h = time.getHours();
+      const mm = time.getMinutes();
+      const s = time.getSeconds();
+      return `${time.getFullYear()}-${month}-${day} ${h}:${mm}:${s}`;
     },
     getXGameId() {
       const time = +new Date().getTime();
