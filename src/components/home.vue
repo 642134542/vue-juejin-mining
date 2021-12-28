@@ -107,53 +107,11 @@
         </div>
       </div>
     </el-main>
-    <el-dialog
-      title="记录"
-      :visible.sync="dialogVisible"
-      width="80%"
-      :before-close="handleClose"
-    >
-      <el-table
-        :data="recordTableData"
-        border
-        show-summary
-        style="width: 100%"
-        height="500px"
-      >
-        <el-table-column prop="time" label="游戏时间" align="center">
-          <template slot-scope="scope">
-            <span>{{ timeFormat(scope.row.time) }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column prop="roleId" label="游戏角色" align="center">
-        </el-table-column>
-        <el-table-column prop="deep" label="位置" width="180" align="center">
-        </el-table-column>
-        <el-table-column prop="diamond" label="矿石" width="180" align="center">
-        </el-table-column>
-        <el-table-column prop="picoDiamond" label="彩蛋矿石" align="center">
-        </el-table-column>
-        <el-table-column
-          prop="realDiamond"
-          label="实际矿石"
-          width="180"
-          align="center"
-        >
-        </el-table-column>
-        <el-table-column
-          prop="diamond"
-          label="gameTime"
-          width="180"
-          align="center"
-        >
-        </el-table-column>
-        <el-table-column prop="picoDiamond" label="seed" align="center">
-        </el-table-column>
-      </el-table>
-      <span slot="footer" class="dialog-footer">
-        <el-button @click="dialogVisible = false">关 闭</el-button>
-      </span>
-    </el-dialog>
+    <dialog-record-table
+      v-if="dialogVisible"
+      :recordTableData="recordTableData"
+      @closeDialog="dialogVisible = false"
+    ></dialog-record-table>
   </el-container>
 </template>
 
@@ -169,10 +127,13 @@ import {
   getRecord,
 } from "../api/juejin";
 import first from "../utils/first";
+import dialogRecordTable from "./dialogRecordTable.vue";
 
 export default {
   name: "home",
-  components: {},
+  components: {
+    dialogRecordTable,
+  },
   data() {
     return {
       form: {
@@ -272,7 +233,6 @@ export default {
       start(params, this.form.uid, time).then(
         (res) => {
           const { data } = res;
-          // this.$message.success("开始成功");
           this.logData.push({
             type: "start",
             typeInfo: "开始游戏",
@@ -333,6 +293,9 @@ export default {
           setTimeout(() => {
             this.getPicoDiamond(deep - 100);
           }, 2000);
+        } else {
+          this.getInfo();
+          this.getRecord();
         }
       });
     },
@@ -342,7 +305,6 @@ export default {
       const params = {};
       freshMap(params, this.form.uid, time).then(
         (res) => {
-          this.$message.success("开始成功");
           this.logData.push({
             type: "freshMap",
             typeInfo: "更换地图",
@@ -365,7 +327,6 @@ export default {
         };
         over(params, this.form.uid, time).then(
           (res) => {
-            this.$message.success("开始成功");
             const { data } = res;
             this.logData.push({
               type: "over",
@@ -380,22 +341,6 @@ export default {
     // 清空日志
     clearLog() {
       this.logData = [];
-    },
-    // 关闭弹窗
-    handleClose() {
-      this.dialogVisible = false;
-    },
-    timeFormat(d) {
-      const time = new Date(+d);
-      const month =
-        time.getMonth() + 1 < 10
-          ? `0${time.getMonth() + 1}`
-          : time.getMonth() + 1;
-      const day = time.getDate() < 10 ? `0${time.getDate()}` : time.getDate();
-      const h = time.getHours();
-      const mm = time.getMinutes();
-      const s = time.getSeconds();
-      return `${time.getFullYear()}-${month}-${day} ${h}:${mm}:${s}`;
     },
     getXGameId() {
       const time = +new Date().getTime();
