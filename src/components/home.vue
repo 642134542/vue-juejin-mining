@@ -17,6 +17,13 @@
       </el-form>
       <el-row>
         <el-col :span="8">
+          <el-button type="primary" @click="submitForm('createData')"
+            >获取信息</el-button
+          >
+        </el-col>
+      </el-row>
+      <el-row class="margin-top-20">
+        <el-col :span="8">
           <el-button type="primary" @click="submitForm('start')"
             >开始</el-button
           >
@@ -161,10 +168,6 @@ export default {
   },
   created() {
     this.getLocal();
-    if (this.form.uid && this.form.token) {
-      // this.getInfo();
-      // this.getRecord();
-    }
   },
   methods: {
     // 获取历史记录
@@ -179,6 +182,7 @@ export default {
             new Date().setHours(0, 0, 0, 0)
           ).getTime();
           const todayRecord = data.record.filter((v) => v.time >= todayStamp);
+          this.userInfo.todayTotalPicoDiamond = 0;
           todayRecord.forEach((v) => {
             this.userInfo.todayTotalPicoDiamond += v.picoDiamond;
           });
@@ -189,11 +193,16 @@ export default {
     getLocal() {
       this.form.uid = localStorage.getItem("uid");
       this.form.token = localStorage.getItem("token");
+      // this.saveLocal();
     },
     // 保存本地
     saveLocal() {
       localStorage.setItem("uid", this.form.uid);
       localStorage.setItem("token", this.form.token);
+      if (this.form.uid && this.form.token) {
+        this.getInfo();
+        this.getRecord();
+      }
     },
     submitForm(funName) {
       this.$refs.form.validate((valid) => {
@@ -205,12 +214,17 @@ export default {
         }
       });
     },
+    // 获取数据
+    createData() {
+      this.getInfo();
+      this.getRecord();
+    },
     getInfo() {
       const time = new Date().getTime();
       getInfo(this.form.uid, time).then(
         (res) => {
           const { data } = res;
-          this.logData.push({
+          this.logData.unshift({
             type: "getInfo",
             typeInfo: "获取游戏基本信息",
             msg: res.message,
@@ -233,7 +247,7 @@ export default {
       start(params, this.form.uid, time).then(
         (res) => {
           const { data } = res;
-          this.logData.push({
+          this.logData.unshift({
             type: "start",
             typeInfo: "开始游戏",
             msg: res.message,
@@ -255,7 +269,7 @@ export default {
       const xGameId = this.getXGameId();
       command(params, this.form.uid, time, xGameId).then((res) => {
         const { data } = res;
-        this.logData.push({
+        this.logData.unshift({
           type: "command",
           typeInfo: "发出指令",
           msg: res.message,
@@ -284,7 +298,7 @@ export default {
             otherMsg = `获得道具，编号为${data.pico}`;
           }
         }
-        this.logData.push({
+        this.logData.unshift({
           type: "pico",
           typeInfo: otherMsg,
           msg: res.message,
@@ -292,7 +306,7 @@ export default {
         if (deep >= 200) {
           setTimeout(() => {
             this.getPicoDiamond(deep - 100);
-          }, 2000);
+          }, 3000);
         } else {
           this.getInfo();
           this.getRecord();
@@ -305,7 +319,7 @@ export default {
       const params = {};
       freshMap(params, this.form.uid, time).then(
         (res) => {
-          this.logData.push({
+          this.logData.unshift({
             type: "freshMap",
             typeInfo: "更换地图",
             msg: res.message,
@@ -328,7 +342,7 @@ export default {
         over(params, this.form.uid, time).then(
           (res) => {
             const { data } = res;
-            this.logData.push({
+            this.logData.unshift({
               type: "over",
               typeInfo: `结束游戏，位置${data.deep}, 矿石${data.gameDiamond}，实际获取矿石${data.realDiamond}, 彩蛋矿石${data.picoDiamond}`,
               msg: res.message,
@@ -347,7 +361,7 @@ export default {
       return jwt.sign(
         {
           gameId: this.gameId,
-          time: time,
+          time,
           // eslint-disable-next-line max-len
         },
         "-----BEGIN EC PARAMETERS-----\nBggqhkjOPQMBBw==\n-----END EC PARAMETERS-----\n-----BEGIN EC PRIVATE KEY-----\nMHcCAQEEIDB7KMVQd+eeKt7AwDMMUaT7DE3Sl0Mto3LEojnEkRiAoAoGCCqGSM49\nAwEHoUQDQgAEEkViJDU8lYJUenS6IxPlvFJtUCDNF0c/F/cX07KCweC4Q/nOKsoU\nnYJsb4O8lMqNXaI1j16OmXk9CkcQQXbzfg==\n-----END EC PRIVATE KEY-----\n",
