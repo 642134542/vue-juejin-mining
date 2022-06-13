@@ -2,6 +2,7 @@ import axios from "axios";
 
 const service = axios.create({
   timeout: 1000 * 60 * 5, // request timeout
+  baseURL: 'https://juejin-game.bytedance.com',
 });
 
 const tokenHeader = "authorization"; // token自定义头部名称
